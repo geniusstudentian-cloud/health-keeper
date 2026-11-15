@@ -1,0 +1,508 @@
+<!DOCTYPE html>
+<html lang="ko">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>건강 챙기미</title>
+    <!-- Tailwind CSS 로드 -->
+    <script src="https://cdn.tailwindcss.com"></script>
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
+</head>
+<body class="bg-slate-100 flex justify-center items-center min-h-screen font-sans">
+
+    <!-- Mobile Frame -->
+    <div class="w-full max-w-md bg-white min-h-screen sm:min-h-[850px] sm:rounded-3xl sm:shadow-2xl flex flex-col overflow-hidden relative border border-slate-200">
+        
+        <!-- 커스텀 토스트 메시지 (alert 대체용) -->
+        <div id="toast-message" class="hidden absolute top-20 left-1/2 -translate-x-1/2 z-50 bg-slate-800/95 text-white text-xs font-medium px-4 py-2.5 rounded-full shadow-lg transition-opacity duration-300 whitespace-nowrap">
+            메시지 내용
+        </div>
+
+        <!-- Header -->
+        <header class="bg-emerald-600 text-white px-6 py-4 flex justify-between items-center shadow-md">
+            <div>
+                <h1 class="text-xl font-bold tracking-wide"><i class="fa-solid fa-heart-pulse mr-2"></i>건강 챙기미</h1>
+                <p class="text-xs text-emerald-100">오늘도 건강한 하루 루틴!</p>
+            </div>
+            <div class="w-10 h-10 rounded-full bg-emerald-500 flex items-center justify-center font-bold text-lg shadow-inner">
+                이안
+            </div>
+        </header>
+
+        <!-- Main Content Area (Tab Content) -->
+        <main class="flex-1 overflow-y-auto p-5 pb-24 space-y-6">
+            
+            <!-- 탭 1: 오늘 루틴 (메인) -->
+            <section id="tab-routine" class="tab-content space-y-6">
+                <!-- 수면 및 컨디션 카드 -->
+                <div class="bg-gradient-to-r from-indigo-500 to-purple-600 rounded-2xl p-5 text-white shadow-lg relative overflow-hidden">
+                    <div class="absolute -right-4 -bottom-4 text-white/10 text-8xl font-bold">
+                        <i class="fa-solid fa-moon"></i>
+                    </div>
+                    <div class="relative z-10">
+                        <div class="flex justify-between items-start mb-2">
+                            <span class="text-xs uppercase tracking-wider bg-white/20 px-2.5 py-1 rounded-full font-medium">어제 수면 & 컨디션</span>
+                            <span id="main-condition-score" class="text-2xl font-black">78%</span>
+                        </div>
+                        <p id="main-sleep-summary" class="text-sm text-indigo-100 mb-4">권장 수면 8시간 중 7시간 취침 (개운함 80점)</p>
+                        <div class="flex items-center justify-between bg-black/15 px-4 py-2.5 rounded-xl text-sm">
+                            <span><i class="fa-regular fa-clock mr-2 text-indigo-200"></i>오늘 취침 예정 시간</span>
+                            <button onclick="openBedtimeModal()" class="flex items-center gap-1.5 font-bold hover:text-indigo-200 transition underline decoration-indigo-300/60 underline-offset-4">
+                                <span id="main-bedtime-display">23:30</span>
+                                <i class="fa-solid fa-pen text-xs"></i>
+                            </button>
+                        </div>
+                    </div>
+                </div>
+
+                <!-- 약 복용 목록 카드 -->
+                <div class="bg-white rounded-2xl p-5 border border-slate-100 shadow-sm space-y-4">
+                    <div class="flex justify-between items-center">
+                        <h2 class="font-bold text-slate-800 text-lg"><i class="fa-solid fa-pills text-emerald-600 mr-2"></i>오늘 먹어야 할 약</h2>
+                        <div class="flex items-center gap-2">
+                            <span id="med-counter-badge" class="text-xs text-emerald-600 bg-emerald-50 px-2.5 py-1 rounded-full font-semibold">2개 중 1개 완료</span>
+                            <button onclick="openMedModal()" class="bg-emerald-600 hover:bg-emerald-700 text-white text-xs px-2.5 py-1 rounded-lg font-semibold shadow transition flex items-center gap-1">
+                                <i class="fa-solid fa-plus"></i> 추가
+                            </button>
+                        </div>
+                    </div>
+
+                    <div id="med-list-container" class="space-y-3">
+                        <!-- 약 아이템 1 -->
+                        <label class="med-item flex items-center p-3.5 rounded-xl border border-emerald-200 bg-emerald-50/50 cursor-pointer transition hover:border-emerald-400">
+                            <input type="checkbox" checked onchange="updateMedCount()" class="w-5 h-5 accent-emerald-600 rounded cursor-pointer">
+                            <div class="ml-3.5 flex-1">
+                                <div class="font-semibold text-slate-800 line-through text-emerald-800">아침 영양제 (종합비타민)</div>
+                                <div class="text-xs text-emerald-600">08:30 복용 완료</div>
+                            </div>
+                            <span class="text-emerald-600 text-sm font-bold"><i class="fa-solid fa-check"></i></span>
+                        </label>
+
+                        <!-- 약 아이템 2 -->
+                        <label class="med-item flex items-center p-3.5 rounded-xl border border-slate-200 bg-white cursor-pointer transition hover:border-emerald-300 shadow-sm">
+                            <input type="checkbox" onchange="updateMedCount()" class="w-5 h-5 accent-emerald-600 rounded cursor-pointer">
+                            <div class="ml-3.5 flex-1">
+                                <div class="font-semibold text-slate-800">저녁 감기약 & 위장약</div>
+                                <div class="text-xs text-slate-400">19:30 예정 (미복용 시 20분 간격 재알림)</div>
+                            </div>
+                            <span class="text-amber-500 text-xs font-semibold bg-amber-50 px-2 py-1 rounded-md">대기중</span>
+                        </label>
+                    </div>
+                </div>
+
+                <!-- 취침 알람 체크 모의 위젯 -->
+                <div class="bg-slate-50 border border-slate-200 rounded-2xl p-5 space-y-3">
+                    <h3 class="font-bold text-slate-700 text-sm"><i class="fa-solid fa-bell text-indigo-500 mr-2"></i>취침 알람 상태</h3>
+                    <p id="bedtime-alarm-desc" class="text-xs text-slate-500">23:30에 조용한 알람이 울리고, 1시간 뒤 확인 알람이 작동합니다.</p>
+                    <div class="flex gap-2 pt-2">
+                        <button onclick="showToast('이제 잘 거예요! 편안한 밤 되세요. 🌙')" class="flex-1 bg-indigo-600 hover:bg-indigo-700 text-white py-2 rounded-xl text-xs font-semibold shadow transition">이제 잘 거예요</button>
+                        <button onclick="showToast('오늘은 늦게 잘 거예요. 컨디션 점수에 반영됩니다. ⏰')" class="flex-1 bg-white border border-slate-300 hover:bg-slate-100 text-slate-700 py-2 rounded-xl text-xs font-semibold transition">늦게 잘 거예요</button>
+                    </div>
+                </div>
+            </section>
+
+            <!-- 탭 2: 약 캘린더 -->
+            <section id="tab-calendar" class="tab-content hidden space-y-4">
+                <h2 class="font-bold text-slate-800 text-lg">약 복용 캘린더</h2>
+                <div class="bg-white rounded-2xl p-5 border border-slate-100 shadow-sm text-center space-y-4">
+                    <div class="flex justify-between items-center mb-2">
+                        <button class="text-slate-500 hover:text-slate-800"><i class="fa-solid fa-chevron-left"></i></button>
+                        <span class="font-bold text-slate-800">2026년 11월</span>
+                        <button class="text-slate-500 hover:text-slate-800"><i class="fa-solid fa-chevron-right"></i></button>
+                    </div>
+                    <div class="grid grid-cols-7 gap-1 text-xs font-semibold text-slate-400">
+                        <span>일</span><span>월</span><span>화</span><span>수</span><span>목</span><span>금</span><span>토</span>
+                    </div>
+                    <div class="grid grid-cols-7 gap-2 text-sm">
+                        <div class="p-2 text-slate-300">29</div>
+                        <div class="p-2 text-slate-300">30</div>
+                        <div class="p-2 text-slate-300">31</div>
+                        <div class="p-2 bg-emerald-100 text-emerald-800 font-bold rounded-full">1</div>
+                        <div class="p-2 bg-emerald-100 text-emerald-800 font-bold rounded-full">2</div>
+                        <div class="p-2 bg-emerald-500 text-white font-bold rounded-full shadow">3</div>
+                        <div class="p-2 bg-amber-100 text-amber-800 font-bold rounded-full">4</div>
+                    </div>
+                    <div class="text-xs text-slate-500 bg-slate-50 p-3 rounded-xl text-left">
+                        <span class="inline-block w-3 h-3 bg-emerald-500 rounded-full mr-1 align-middle"></span> 모두 복용 완료한 날<br>
+                        <span class="inline-block w-3 h-3 bg-amber-100 rounded-full mr-1 align-middle mt-1"></span> 일부 놓친 날
+                    </div>
+                </div>
+            </section>
+
+            <!-- 탭 3: 수면/컨디션 분석 -->
+            <section id="tab-sleep" class="tab-content hidden space-y-4">
+                <h2 class="font-bold text-slate-800 text-lg">수면 및 컨디션 분석</h2>
+                <div class="bg-white rounded-2xl p-5 border border-slate-100 shadow-sm space-y-5">
+                    <!-- 어제 잔 시간 조절 추가 -->
+                    <div>
+                        <div class="flex justify-between items-center mb-1">
+                            <span class="text-sm font-semibold text-slate-700">어제 실제 수면 시간 입력</span>
+                            <span id="actual-sleep-value" class="text-indigo-600 font-bold text-lg">7시간</span>
+                        </div>
+                        <input type="range" id="actual-sleep-slider" min="1" max="12" step="0.5" value="7" oninput="updateActualSleep(this.value)" class="w-full accent-indigo-600 cursor-pointer">
+                        <div class="text-xs text-slate-400 flex justify-between">
+                            <span>1시간</span>
+                            <span>6시간</span>
+                            <span>12시간</span>
+                        </div>
+                    </div>
+
+                    <hr class="border-slate-100">
+
+                    <!-- 오늘 아침 개운함 점수 -->
+                    <div>
+                        <div class="flex justify-between items-center mb-1">
+                            <span class="text-sm font-semibold text-slate-700">오늘 아침 개운함 점수 입력</span>
+                            <span id="freshness-value" class="text-emerald-600 font-bold text-lg">80점</span>
+                        </div>
+                        <input type="range" id="freshness-slider" min="0" max="100" value="80" oninput="updateFreshness(this.value)" class="w-full accent-emerald-600 cursor-pointer">
+                        <div class="text-xs text-slate-400 flex justify-between">
+                            <span>피곤해요 (0)</span>
+                            <span>보통 (50)</span>
+                            <span>매우 개운해요 (100)</span>
+                        </div>
+                    </div>
+
+                    <div class="bg-emerald-50 rounded-xl p-3 text-xs text-emerald-800 flex justify-between items-center mt-2">
+                        <span>💡 수면 점수 산정 방식 (권장 수면 50% + 개운함 50%)</span>
+                        <span id="calculated-condition-badge" class="font-bold text-sm">컨디션 78%</span>
+                    </div>
+                </div>
+            </section>
+
+            <!-- 탭 4: 설정 -->
+            <section id="tab-settings" class="tab-content hidden space-y-4">
+                <h2 class="font-bold text-slate-800 text-lg">맞춤 설정</h2>
+                <div class="bg-white rounded-2xl p-5 border border-slate-100 shadow-sm space-y-4">
+                    <div>
+                        <label class="block text-sm font-semibold text-slate-700 mb-1">재알림 간격 및 횟수</label>
+                        <select id="reminder-select" class="w-full border border-slate-200 rounded-xl p-3 text-sm bg-slate-50 focus:outline-emerald-500">
+                            <option value="20_2">20분 간격, 2번 (기본값)</option>
+                            <option value="10_3">10분 간격, 3번</option>
+                            <option value="30_1">30분 간격, 1번</option>
+                        </select>
+                    </div>
+                    <div>
+                        <label class="block text-sm font-semibold text-slate-700 mb-1">사용자 나이 (권장 수면 산정 기준)</label>
+                        <input type="number" id="user-age" value="20" oninput="onAgeChange(this.value)" class="w-full border border-slate-200 rounded-xl p-3 text-sm bg-slate-50 focus:outline-emerald-500">
+                    </div>
+                    <div class="bg-indigo-50 border border-indigo-100 rounded-xl p-4 space-y-1">
+                        <div class="text-xs font-semibold text-indigo-900"><i class="fa-solid fa-circle-info mr-1"></i> 나이별 권장 수면 시간 연동 안내</div>
+                        <div id="recommended-sleep-display" class="text-sm font-bold text-indigo-700">성인 (19~64세): 7 ~ 9시간 권장</div>
+                    </div>
+                    <button onclick="saveSettings()" class="w-full bg-emerald-600 text-white font-semibold py-3 rounded-xl shadow hover:bg-emerald-700 transition">저장하기</button>
+                </div>
+            </section>
+
+        </main>
+
+        <!-- 약 추가 모달 -->
+        <div id="med-modal" class="hidden absolute inset-0 bg-black/50 z-50 flex items-center justify-center p-4">
+            <div class="bg-white w-full max-w-xs rounded-2xl p-5 shadow-2xl space-y-4 animate-in fade-in zoom-in duration-200">
+                <div class="flex justify-between items-center">
+                    <h3 class="font-bold text-slate-800 text-base"><i class="fa-solid fa-pills text-emerald-600 mr-2"></i>약 일정 추가</h3>
+                    <button onclick="closeMedModal()" class="text-slate-400 hover:text-slate-600"><i class="fa-solid fa-xmark text-lg"></i></button>
+                </div>
+                <div class="space-y-3">
+                    <div>
+                        <label class="block text-xs font-semibold text-slate-600 mb-1">약 이름</label>
+                        <input type="text" id="new-med-name" placeholder="예: 점심 유산균" class="w-full border border-slate-200 rounded-xl p-2.5 text-sm focus:outline-emerald-500">
+                    </div>
+                    <div>
+                        <label class="block text-xs font-semibold text-slate-600 mb-1">복용 시간</label>
+                        <input type="time" id="new-med-time" value="13:00" class="w-full border border-slate-200 rounded-xl p-2.5 text-sm focus:outline-emerald-500">
+                    </div>
+                </div>
+                <div class="flex gap-2 pt-2">
+                    <button onclick="closeMedModal()" class="flex-1 bg-slate-100 text-slate-600 py-2.5 rounded-xl text-xs font-semibold">취소</button>
+                    <button onclick="addNewMedicine()" class="flex-1 bg-emerald-600 text-white py-2.5 rounded-xl text-xs font-semibold shadow">추가하기</button>
+                </div>
+            </div>
+        </div>
+
+        <!-- 취침 예정 시간 변경 모달 -->
+        <div id="bedtime-modal" class="hidden absolute inset-0 bg-black/50 z-50 flex items-center justify-center p-4">
+            <div class="bg-white w-full max-w-xs rounded-2xl p-5 shadow-2xl space-y-4">
+                <div class="flex justify-between items-center">
+                    <h3 class="font-bold text-slate-800 text-base"><i class="fa-solid fa-moon text-indigo-600 mr-2"></i>오늘 취침 시간 변경</h3>
+                    <button onclick="closeBedtimeModal()" class="text-slate-400 hover:text-slate-600"><i class="fa-solid fa-xmark text-lg"></i></button>
+                </div>
+                <div>
+                    <label class="block text-xs font-semibold text-slate-600 mb-1">새로운 취침 시간</label>
+                    <input type="time" id="new-bedtime-input" value="23:30" class="w-full border border-slate-200 rounded-xl p-2.5 text-sm focus:outline-indigo-500">
+                </div>
+                <div class="flex gap-2 pt-2">
+                    <button onclick="closeBedtimeModal()" class="flex-1 bg-slate-100 text-slate-600 py-2.5 rounded-xl text-xs font-semibold">취소</button>
+                    <button onclick="saveBedtime()" class="flex-1 bg-indigo-600 text-white py-2.5 rounded-xl text-xs font-semibold shadow">변경하기</button>
+                </div>
+            </div>
+        </div>
+
+        <!-- Bottom Navigation Bar -->
+        <nav class="absolute bottom-0 left-0 right-0 bg-white border-t border-slate-200 flex justify-around py-3 px-2 shadow-lg">
+            <button onclick="switchTab('tab-routine')" class="tab-btn flex flex-col items-center text-emerald-600 font-semibold" data-target="tab-routine">
+                <i class="fa-solid fa-house text-lg mb-1"></i>
+                <span class="text-[10px]">루틴</span>
+            </button>
+            <button onclick="switchTab('tab-calendar')" class="tab-btn flex flex-col items-center text-slate-400 font-medium hover:text-slate-600" data-target="tab-calendar">
+                <i class="fa-solid fa-calendar-days text-lg mb-1"></i>
+                <span class="text-[10px]">약 캘린더</span>
+            </button>
+            <button onclick="switchTab('tab-sleep')" class="tab-btn flex flex-col items-center text-slate-400 font-medium hover:text-slate-600" data-target="tab-sleep">
+                <i class="fa-solid fa-moon text-lg mb-1"></i>
+                <span class="text-[10px]">수면분석</span>
+            </button>
+            <button onclick="switchTab('tab-settings')" class="tab-btn flex flex-col items-center text-slate-400 font-medium hover:text-slate-600" data-target="tab-settings">
+                <i class="fa-solid fa-gear text-lg mb-1"></i>
+                <span class="text-[10px]">설정</span>
+            </button>
+        </nav>
+
+    </div>
+
+    <!-- Script for Tab Switching & Interactions -->
+    <script>
+        let toastTimeout;
+        let currentRecommendedHours = 8; // 기본 권장 수면 시간
+        let currentActualSleepHours = 7; // 어제 실제 잔 시간
+        let currentFreshnessScore = 80; // 아침 개운함 점수
+        let currentBedtime = '23:30'; // 오늘 취침 예정 시간
+
+        // 커스텀 토스트 메시지 표시 함수 (alert 대체)
+        function showToast(msg) {
+            const toast = document.getElementById('toast-message');
+            if (!toast) return;
+            toast.textContent = msg;
+            toast.classList.remove('hidden');
+            
+            clearTimeout(toastTimeout);
+            toastTimeout = setTimeout(() => {
+                toast.classList.add('hidden');
+            }, 2500);
+        }
+
+        // 탭 전환 함수
+        function switchTab(targetId) {
+            const resolvedId = targetId.startsWith('tab-') ? targetId : `tab-${targetId}`;
+            const targetEl = document.getElementById(resolvedId);
+            
+            if (!targetEl) {
+                console.warn(`대상 탭 요소를 찾을 수 없습니다: ${resolvedId}`);
+                return;
+            }
+
+            document.querySelectorAll('.tab-content').forEach(tab => {
+                tab.classList.add('hidden');
+            });
+            targetEl.classList.remove('hidden');
+
+            document.querySelectorAll('.tab-btn').forEach(btn => {
+                btn.classList.remove('text-emerald-600', 'font-semibold');
+                btn.classList.add('text-slate-400', 'font-medium');
+                if (btn.getAttribute('data-target') === resolvedId) {
+                    btn.classList.remove('text-slate-400', 'font-medium');
+                    btn.classList.add('text-emerald-600', 'font-semibold');
+                }
+            });
+        }
+
+        // 약 복용 개수 동적 계산 함수 (버그 수정)
+        function updateMedCount() {
+            const items = document.querySelectorAll('.med-item');
+            const total = items.length;
+            let checkedCount = 0;
+
+            items.forEach(item => {
+                const checkbox = item.querySelector('input[type="checkbox"]');
+                const title = item.querySelector('.font-semibold');
+                const sub = item.querySelector('.text-xs');
+                const badge = item.querySelector('span:last-child');
+
+                if (checkbox.checked) {
+                    checkedCount++;
+                    title.classList.add('line-through', 'text-emerald-800');
+                    sub.textContent = '방금 복용 완료';
+                    sub.className = 'text-xs text-emerald-600';
+                    item.classList.remove('border-slate-200', 'bg-white');
+                    item.classList.add('border-emerald-200', 'bg-emerald-50/50');
+                    if (badge) {
+                        badge.className = 'text-emerald-600 text-sm font-bold';
+                        badge.innerHTML = '<i class="fa-solid fa-check"></i>';
+                    }
+                } else {
+                    title.classList.remove('line-through', 'text-emerald-800');
+                    sub.textContent = '복용 대기 중 (미복용 시 재알림 작동)';
+                    sub.className = 'text-xs text-slate-400';
+                    item.classList.remove('border-emerald-200', 'bg-emerald-50/50');
+                    item.classList.add('border-slate-200', 'bg-white');
+                    if (badge) {
+                        badge.className = 'text-amber-500 text-xs font-semibold bg-amber-50 px-2 py-1 rounded-md';
+                        badge.textContent = '대기중';
+                    }
+                }
+            });
+
+            const badgeEl = document.getElementById('med-counter-badge');
+            if (badgeEl) {
+                badgeEl.textContent = `${total}개 중 ${checkedCount}개 완료`;
+            }
+        }
+
+        // 약 추가 모달 제어
+        function openMedModal() {
+            document.getElementById('med-modal').classList.remove('hidden');
+        }
+        function closeMedModal() {
+            document.getElementById('med-modal').classList.add('hidden');
+            document.getElementById('new-med-name').value = '';
+        }
+
+        // 새로운 약 추가 기능
+        function addNewMedicine() {
+            const nameInput = document.getElementById('new-med-name');
+            const timeInput = document.getElementById('new-med-time');
+            const name = nameInput.value.trim();
+            const time = timeInput.value;
+
+            if (!name) {
+                showToast('⚠️ 약 이름을 입력해 주세요.');
+                nameInput.focus();
+                return;
+            }
+
+            const container = document.getElementById('med-list-container');
+            const newItem = document.createElement('label');
+            newItem.className = 'med-item flex items-center p-3.5 rounded-xl border border-slate-200 bg-white cursor-pointer transition hover:border-emerald-300 shadow-sm';
+            newItem.innerHTML = `
+                <input type="checkbox" onchange="updateMedCount()" class="w-5 h-5 accent-emerald-600 rounded cursor-pointer">
+                <div class="ml-3.5 flex-1">
+                    <div class="font-semibold text-slate-800">${name}</div>
+                    <div class="text-xs text-slate-400">${time} 예정 (미복용 시 재알림)</div>
+                </div>
+                <span class="text-amber-500 text-xs font-semibold bg-amber-50 px-2 py-1 rounded-md">대기중</span>
+            `;
+            container.appendChild(newItem);
+            closeMedModal();
+            updateMedCount();
+            showToast(`💊 '${name}' 약이 추가되었습니다!`);
+        }
+
+        // 취침 예정 시간 모달 제어 및 저장
+        function openBedtimeModal() {
+            document.getElementById('new-bedtime-input').value = currentBedtime;
+            document.getElementById('bedtime-modal').classList.remove('hidden');
+        }
+        function closeBedtimeModal() {
+            document.getElementById('bedtime-modal').classList.add('hidden');
+        }
+        function saveBedtime() {
+            const inputVal = document.getElementById('new-bedtime-input').value;
+            if (!inputVal) {
+                showToast('⚠️ 취침 시간을 선택해 주세요.');
+                return;
+            }
+            currentBedtime = inputVal;
+            document.getElementById('main-bedtime-display').textContent = currentBedtime;
+            document.getElementById('bedtime-alarm-desc').textContent = `${currentBedtime}에 조용한 알람이 울리고, 1시간 뒤 확인 알람이 작동합니다.`;
+            closeBedtimeModal();
+            showToast(`🌙 취침 시간이 ${currentBedtime}으로 변경되었습니다!`);
+        }
+
+        // 어제 실제 수면 시간 변경 함수
+        function updateActualSleep(hoursVal) {
+            currentActualSleepHours = Number(hoursVal);
+            const actualEl = document.getElementById('actual-sleep-value');
+            if (actualEl) {
+                actualEl.textContent = `${currentActualSleepHours}시간`;
+            }
+            recalculateSleepCondition();
+        }
+
+        // 수면 개운함 점수 슬라이더 연동 함수
+        function updateFreshness(val) {
+            currentFreshnessScore = Number(val);
+            const freshnessValueEl = document.getElementById('freshness-value');
+            if (freshnessValueEl) {
+                freshnessValueEl.textContent = `${currentFreshnessScore}점`;
+            }
+            recalculateSleepCondition();
+        }
+
+        // 수면 및 컨디션 점수 통합 재계산 함수
+        function recalculateSleepCondition() {
+            const sleepTimeScore = Math.min(100, Math.round((currentActualSleepHours / currentRecommendedHours) * 100));
+            const totalCondition = Math.round((sleepTimeScore * 0.5) + (currentFreshnessScore * 0.5));
+
+            const badgeEl = document.getElementById('calculated-condition-badge');
+            if (badgeEl) {
+                badgeEl.textContent = `컨디션 ${totalCondition}%`;
+            }
+            const mainScoreEl = document.getElementById('main-condition-score');
+            if (mainScoreEl) {
+                mainScoreEl.textContent = `${totalCondition}%`;
+            }
+            const mainSummaryEl = document.getElementById('main-sleep-summary');
+            if (mainSummaryEl) {
+                mainSummaryEl.textContent = `권장 수면 ${currentRecommendedHours}시간 중 ${currentActualSleepHours}시간 취침 (개운함 ${currentFreshnessScore}점)`;
+            }
+        }
+
+        // 나이 변경 시 권장 수면 시간 연동
+        function onAgeChange(ageVal) {
+            const age = Number(ageVal);
+            const displayEl = document.getElementById('recommended-sleep-display');
+            if (!displayEl) return;
+
+            if (age >= 1 && age <= 5) {
+                currentRecommendedHours = 11;
+                displayEl.textContent = `어린이/유아 (1~5세): 10 ~ 14시간 권장`;
+            } else if (age >= 6 && age <= 13) {
+                currentRecommendedHours = 9;
+                displayEl.textContent = `어린이/초등학생 (6~13세): 9 ~ 11시간 권장`;
+            } else if (age >= 14 && age <= 18) {
+                currentRecommendedHours = 9;
+                displayEl.textContent = `청소년 (14~18세): 8 ~ 10시간 권장`;
+            } else if (age >= 19 && age <= 64) {
+                currentRecommendedHours = 8;
+                displayEl.textContent = `성인 (19~64세): 7 ~ 9시간 권장`;
+            } else if (age >= 65 && age <= 120) {
+                currentRecommendedHours = 7;
+                displayEl.textContent = `노인 (65~120세): 7 ~ 8시간 권장`;
+            } else {
+                currentRecommendedHours = 8;
+                displayEl.textContent = `올바른 나이(1~120세)를 입력해 주세요`;
+            }
+            recalculateSleepCondition();
+        }
+
+        // 설정 저장 및 나이 유효성 검사 (기획서 기능 3 예외 처리 반영)
+        function saveSettings() {
+            const ageInput = document.getElementById('user-age');
+            const age = Number(ageInput.value);
+            if (!age || age < 1 || age > 120) {
+                showToast('⚠️ 올바른 나이(1~120세)를 입력해 주세요.');
+                ageInput.focus();
+                return;
+            }
+            showToast('✅ 맞춤 설정이 권장 수면 시간과 함께 저장되었습니다!');
+        }
+
+        // 초기 실행 시 약 개수 카운트 및 슬라이더 초기화
+        window.addEventListener('DOMContentLoaded', () => {
+            updateMedCount();
+            const sleepSlider = document.getElementById('actual-sleep-slider');
+            if (sleepSlider) {
+                updateActualSleep(sleepSlider.value);
+            }
+            const slider = document.getElementById('freshness-slider');
+            if (slider) {
+                updateFreshness(slider.value);
+            }
+            const ageInput = document.getElementById('user-age');
+            if (ageInput) {
+                onAgeChange(ageInput.value);
+            }
+        });
+    </script>
+</body>
+</html>
